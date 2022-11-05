@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Music</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.js"></script>
+    <script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.5.0/addons/p5.sound.min.js" integrity="sha512-WzkwpdWEMAY/W8WvP9KS2/VI6zkgejR4/KTxTl4qHx0utqeyVE0JY+S1DlMuxDChC7x0oXtk/ESji6a0lP/Tdg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa&display=swap" rel="stylesheet">
+</head>
+<style>
+    body{
+        font-family: 'Comfortaa';
+        background: url('bg.webp');
+        background-size: cover;
+    }
+    .div{
+        background-color: rgb(255, 255, 255);
+        color: black;
+        padding: 10px 0px;
+        padding-bottom: 18px;
+    }
+    .button{
+        background-color: white;
+        color: black;
+        font-size: 25px;
+        border: none;
+        margin: 25px 50px;
+        padding: 5px 13px;
+        box-shadow: 0px 0px 7px black;
+        transition: 0.3s;
+    }
+    marquee{
+        position: fixed;
+        bottom: 0;
+        background-color: white;
+        color: black;
+        font-size: 20px;
+        padding: 3px 0px;
+    }
+    canvas{
+        box-shadow: 0px 0px 15px black;
+        border-radius: 10px;
+    }
+</style>
+
+<body>
+    <center>
+        <div class="div">
+            <h1>AI Music<h4>Show your left hand to play the music and show your right hand to change it.</h4>
+            </h1>
+        </div>
+        <h3 class="button" id="music">Music Playing: None</h3>
+    </center>
+    <marquee behavior="scroll" direction="left" scrollamount="20">Developed By Ansh</marquee>
+    <script>
+        s1 = '';
+        s2 = '';
+        leftX = 0;
+        leftY = 0;
+        rightX = 0;
+        rightY = 0;
+        scoreLeft = 0;
+        scoreRight = 0;
+        function setup(){
+            x = screen.width;
+            y = x - 550;
+            canvas = createCanvas(550, 400);
+            canvas.position(y/2, 250);
+            video = createCapture(VIDEO);
+            video.size(550, 400);
+            video.hide();
+            posenet = ml5.poseNet(video, modalLoaded);
+            posenet.on('pose', gotResults);
+        }
+        function gotResults(results){
+            if(results.length > 0){
+                console.log(results);
+                leftX = results[0].pose.leftWrist.x;
+                leftY = results[0].pose.leftWrist.y;
+                rightX = results[0].pose.rightWrist.x;
+                rightY = results[0].pose.rightWrist.y;
+                scoreLeft = results[0].pose.keypoints[9].score;
+                scoreRight = results[0].pose.keypoints[10].score;
+            }
+        }
+        function modalLoaded(){
+            console.log('modal loaded.');
+        }
+        function preload(){
+            s1 = loadSound('song1.mp3');
+            s1.setVolume(0.5);
+            s2 = loadSound('song2.mp3');
+            s2.setVolume(0.5);
+        }
+        function draw(){
+            image(video, 0, 0, 550, 400);
+            ms1 = s1.isPlaying();
+            ms2 = s2.isPlaying();
+            if (scoreLeft > 0.2){
+                fill(0, 0, 0);
+                stroke(0, 0, 0);
+                circle(leftX, leftY, 50);
+                s2.stop();
+                if(ms1 == false){
+                    s1.play();
+                    document.getElementById('music').innerHTML = 'Music Playing: Song 1';
+                }
+            }
+            if(scoreRight > 0.2){
+                fill(0, 0, 0);
+                stroke(0, 0, 0);
+                circle(rightX, rightY, 50);
+                s1.stop();
+                if(ms2 == false){
+                    s2.play();
+                    document.getElementById('music').innerHTML = 'Music Playing: Song 2';
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
